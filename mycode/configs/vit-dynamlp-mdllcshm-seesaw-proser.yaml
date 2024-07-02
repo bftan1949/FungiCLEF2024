@@ -1,0 +1,79 @@
+BASIC:
+  NODES: 1
+  GPUS: 4
+  NR: 0
+  WORLD_SIZE: 4
+  EPOCHS: 15
+  CHECK_EVERY_BATCH: 10
+  DATASET: 'FGVCMetaDataset'
+  DATA_PATH: '/data/dataset/fungi2024'
+  LOG_NAME: 'vit-dynamlp-mdllcshm-seesaw-proser.log'
+  MODEL:
+    NAME: 'vit_large_dynamic_mlp_patch14_clip_336'
+    PRETRAIN_PATH: '/data/tbf/fungi/pretrain/vit_large_patch14_clip_336.datacompxl_ft_augreg_inat21/pytorch_model.bin'
+    NUM_CLASS: 1604
+    PARAMS:
+      mlp_n: 2 # Dynamic MLP 堆叠的层数
+      mlp_cin: 2054 # 输入的meta data的维度
+      mlp_d: 256 # meta data embedding之后的维度
+      mlp_h: 64 # 中间层维度
+      mlp_type: 'c' # Dynamic MLP 的类型
+
+TRAIN:
+  BATCH_SIZE: 64
+  AUG:
+    IMG_SIZE: 336
+    MEAN: [ 0.48145466, 0.4578275, 0.40821073 ]
+    STD: [ 0.26862954, 0.26130258, 0.27577711 ]
+  CLOSESET:
+    TEMP: 0.9
+    MIX:
+      PROB: 0.5
+      ALPHA: 0.4
+    LOSS:
+      NAME: 'SeesawLossWithLogits'
+    OPTIMIZER:
+      NAME: 'SGD'
+      PARAMS:
+        lr: 1.0e-3
+        momentum: 0.9
+        weight_decay: 5.0e-4
+    SCHEDULER:
+      NAME: 'CosineAnnealingLR'
+      PARAMS:
+        T_max: 15
+        eta_min: 0.5e-5
+#    NAME: 'WarmUpScheduler'
+#    COSINE_PARAMS:
+#      T_max: 15
+#      eta_min: 0.5e-5
+#    WARMUP_PARAMS:
+#      warmup_start_lr: 0
+#      warmup_mode: 'linear'
+
+  OPENSET:
+    C: 64
+    TEMP: 1.0
+    MIX:
+      PROB: 0.5
+      ALPHA: 0.4
+    LOSS:
+      NAME: 'ProserLoss'
+    OPTIMIZER:
+      NAME: 'SGD'
+      PARAMS:
+        lr: 1.0e-3
+        momentum: 0.9
+        weight_decay: 5.0e-4
+#    SCHEDULER:
+#      NAME: 'CosineAnnealingLR'
+#      PARAMS:
+#        T_max: 15
+#        eta_min: 0.5e-5
+
+VALID:
+  BATCH_SIZE: 256
+  AUG:
+    IMG_SIZE: 336
+    MEAN: [ 0.48145466, 0.4578275, 0.40821073 ]
+    STD: [ 0.26862954, 0.26130258, 0.27577711 ]
